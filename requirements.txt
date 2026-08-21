@@ -1,0 +1,10 @@
+streamlit
+pandas
+altair
+anthropic
+openai
+python-dotenv
+yt-dlp
+pydantic
+langfuse
+opentelemetry-instrumentation-anthropic

@@ -1,0 +1,35 @@
+name: Tests
+
+# Runs the full test suite on every push and pull request against main.
+# No secrets are needed here — every test in tests/ is either a pure-function
+# unit test or a mocked-API test (Whisper/Claude clients are replaced with
+# unittest.mock objects), so nothing in this workflow ever makes a real
+# network call or needs ANTHROPIC_API_KEY / OPENAI_API_KEY.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run test suite
+        run: pytest tests/ -v

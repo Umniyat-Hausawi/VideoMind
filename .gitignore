@@ -1,0 +1,28 @@
+# Secret files
+.env
+
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Video processing output
+# app.py generates a fresh, uniquely-suffixed folder per analysis run
+# (videomind_output_<8-char-hex>/) — a plain "videomind_output/" entry
+# doesn't match those, so this needs a wildcard to actually catch them.
+videomind_output/
+videomind_output_*/
+test_output/
+temp_*
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# Stray pasted screenshot at project root (not one of the intentional
+# screenshots/ files used in README.md)
+/image.png
