@@ -10,6 +10,9 @@ pinned: false
 
 # VideoMind — Social Media Video Intelligence System
 
+### 🎬 [Try it live →](https://umniyat-hausawi-videomind.hf.space)
+*Paste a TikTok or X link and get a bilingual (Arabic/English) audio+visual sentiment report in a couple of minutes. (YouTube links occasionally get platform-side rate-limited — see [LIMITATIONS.md](LIMITATIONS.md).)*
+
 ## The Problem
 
 The volume of social media video today is far beyond what any person — or team — can realistically watch and keep up with. This is a real operational bottleneck for companies with customer success or brand monitoring teams: they need to know when their brand shows up in social media videos and what's being said about it, but having someone manually watch and log every relevant video doesn't scale and eats significant time and effort.
@@ -25,6 +28,8 @@ Under the hood, it treats audio and visual as two independent signals rather tha
 Primarily built for brands and companies that want to monitor what's being said about them across social media video — customer success and brand monitoring teams who currently rely on manually watching videos to catch mentions and gauge sentiment. It's equally useful for content creators, analysts, and researchers who need to understand not just what was said in a video, but how consistent that message was with what was shown on screen.
 
 > **Scope note:** VideoMind is focused on social media video analysis. Long-form educational or podcast-style YouTube videos work fine too; they go through the same pipeline, since the underlying audio/visual fusion signal doesn't depend on subject matter.
+
+**Jump to:** [Architecture](#1-system-architecture) · [Screenshots](#2-screenshots) · [Key Features](#3-key-features) · [Technical Decisions](#5-technical-decisions) · [Limitations](#8-limitations) · [How to Run](#13-how-to-run) · [Deployment](#14-deployment-hugging-face-spaces)
 
 ---
 
@@ -143,7 +148,8 @@ Every numeric judgment (fusion score, reliability percentage, confidence level, 
 
 ---
 
-## 5. Technical Decisions
+<details>
+<summary><h2 style="display:inline">5. Technical Decisions</h2> — click to expand ~20 "why this, not that" engineering rationales</summary>
 
 **Why Whisper API instead of local Whisper?**
 Local Whisper on CPU takes 15+ minutes for a 5-minute video. Whisper API processes the same audio in under 30 seconds with no quality loss.
@@ -207,6 +213,8 @@ Many API failures are transient. A single extra attempt (with a short delay) rec
 
 **Why cache pipeline results across report regenerations?**
 Streamlit reruns the entire script on every UI interaction. Switching report depth or language for the *same* video only requires re-running the report layer — the input/audio/visual/fusion results are cached in `st.session_state`, keyed by video source, so regenerating a report is near-instant instead of repeating the full pipeline.
+
+</details>
 
 ---
 
@@ -338,6 +346,8 @@ pytest tests/                    # pure-function + mocked API-call tests
 ---
 
 ## 14. Deployment (Hugging Face Spaces)
+
+**Live:** [huggingface.co/spaces/Umniyat-Hausawi/VideoMind](https://umniyat-hausawi-videomind.hf.space)
 
 VideoMind ships with a `Dockerfile` for deployment via Hugging Face Spaces (Docker SDK). See [Architecture.md](Architecture.md) section "🚀 Deployment" for the full breakdown, and [LIMITATIONS.md](LIMITATIONS.md) for current deployment limitations.
 
