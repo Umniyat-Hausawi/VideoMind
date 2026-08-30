@@ -306,6 +306,7 @@ def _download_video(url: str, output_dir: str) -> tuple[str | None, str | None]:
     haven't actually confirmed.
     """
     video_output = os.path.join(output_dir, "input_video.mp4")
+    is_youtube   = "youtube.com" in url.lower() or "youtu.be" in url.lower()
 
     command = [
         "yt-dlp",
@@ -323,13 +324,42 @@ def _download_video(url: str, output_dir: str) -> tuple[str | None, str | None]:
 
         if result.returncode != 0:
             print(f"yt-dlp error: {result.stderr}")
-            # A 403 here is yt-dlp's request reaching the platform and being
-            # actively refused (anti-bot/rate-limiting) — a temporary,
-            # platform-side condition, not a broken download pipeline. Worth
-            # distinguishing from every other failure mode (bad URL, no
-            # internet, private video, etc.) so the UI can say something
-            # more useful than a generic "failed" message.
-            if "HTTP Error 403" in result.stderr or "403: Forbidden" in result.stderr:
+            stderr_lower = result.stderr.lower()
+
+            # YouTube's anti-bot blocking shows up in several different
+            # error shapes depending on which check tripped — a plain HTTP
+            # 403, an HTTP 429 (rate limit), or the newer "sign in to
+            # confirm you're not a bot" challenge text. All of these are
+            # the same underlying temporary, platform-side restriction,
+            # not a broken download pipeline — worth distinguishing from
+            # every other failure mode (bad URL, no internet, etc.) so the
+            # UI can say something more useful than a generic "failed"
+            # message.
+            BLOCKED_SIGNATURES = [
+                "http error 403", "403: forbidden",
+                "http error 429", "429: too many requests",
+                "sign in to confirm", "not a bot",
+            ]
+            # Failure modes that are genuinely NOT a platform block — a
+            # video that's actually gone/private/invalid shouldn't be
+            # mislabeled as "temporarily blocked" just because it's a
+            # YouTube URL.
+            NOT_BLOCKED_SIGNATURES = [
+                "video unavailable", "private video",
+                "this video is not available", "has been removed",
+                "is not a valid url",
+            ]
+
+            is_blocked_error = any(sig in stderr_lower for sig in BLOCKED_SIGNATURES)
+            is_not_blocked   = any(sig in stderr_lower for sig in NOT_BLOCKED_SIGNATURES)
+
+            # For YouTube specifically: unless the error clearly points to
+            # something else (private/removed/invalid), treat any download
+            # failure as the anti-bot block — in practice this covers the
+            # error shapes YouTube introduces over time that we haven't
+            # seen/matched yet, without waiting for another silent
+            # "Failed to prepare video." report.
+            if is_blocked_error or (is_youtube and not is_not_blocked):
                 return None, "platform_blocked"
             return None, None
 
